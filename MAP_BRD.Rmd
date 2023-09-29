@@ -1,0 +1,123 @@
+---
+title: "Map"
+author: "Brooke Donzelli"
+date: "2023-09-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(multcomp)
+library(tidyverse)
+library(readxl)
+library(drc)
+library(lmtest)
+library(sandwich)
+library(Hmisc)
+library(agricolae)
+require(plyr)
+require(dplyr)
+require(ggplot2)
+require (MASS)
+require(DHARMa)
+require(emmeans)
+library("ggplot2")
+library("tidyverse")
+library("dplyr")
+
+map <- read.csv("/Users/donzelli/downloads/map_brd.csv")
+
+```
+
+#total offspring 
+```{r}
+
+#make a copy and rename data
+new.map <- map
+
+new.map$treatment <- factor(new.map$treatment, c("control", "blue", "pink"))
+
+#reordering the factors of the group "treatment" using the c() grouping argument 
+
+
+
+ggplot(data = new.map, aes (x = treatment, y = total.offspring, fill = treatment)) + geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen","cornflowerblue","hotpink1"))+
+  theme_classic() + xlab("Pollen Treatment") + ylab("Total Number of Offspring") + 
+  theme(axis.text.x = element_text(size = 13, face = "italic"), axis.title.x = element_text(size = 15, face = "bold"), 
+        axis.title.y = element_text(size = 15, face = "bold")) + scale_x_discrete(labels=c('Control', 'P. columbinus', 'P. djamor'))
+  
+```
+
+
+```{r}
+
+shapiro.test(new.map$total.offspring)
+
+offspring_aov <- aov(new.map$total.offspring ~ new.map$treatment)
+TukeyHSD(offspring_aov)
+
+#Negative binomial equation 
+fit_offspring <- glm.nb(total.offspring ~ treatment + og.col + start.date + pollen.given + num.males, data = new.map)
+summary(fit_offspring)
+
+#Model Check 
+simulation_output <- simulateResiduals(fittedModel = fit_offspring)
+
+plot(simulation_output)
+
+
+emmeans(fit, pairwise ~ treatment, adjust = "tukey", type = "response")
+
+model2 <- glm.nb(total.offspring ~ treatment, data = new.map)
+
+emmeans(model2, pairwise ~ treatment, adjust = "tukey", type = "response")
+
+
+```
+
+
+Bee Size 
+```{r}
+
+ggplot(data = new.map, aes (x = treatment, y = male.avg.size, fill = treatment)) + geom_boxplot() +
+  scale_fill_manual(values=c("forestgreen","cornflowerblue","hotpink1"))+
+  theme_classic() + xlab("Pollen Treatment") + ylab("Average Male Size (cm)") + 
+  theme(axis.text.x = element_text(size = 13, face = "italic"), axis.title.x = element_text(size = 15, face = "bold"), 
+        axis.title.y = element_text(size = 15, face = "bold")) + scale_x_discrete(labels=c('Control', 'P. columbinus', 'P. djamor'))
+
+```
+
+```{r}
+shapiro.test(new.map$male.avg.size)
+
+size_aov <- aov(new.map$male.avg.size ~ new.map$treatment)
+TukeyHSD(size_aov)
+
+#Negative binomial equation 
+size_fit <- glm.nb(male.avg.size ~ + total.offspring + treatment + og.col + start.date + pollen.given + num.males, data = new.map)
+summary(size_fit)
+
+#Model Check 
+simulation_output <- simulateResiduals(fittedModel = size_fit)
+
+plot(simulation_output)
+
+
+emmeans(fit, pairwise ~ treatment, adjust = "tukey", type = "response")
+
+model2 <- glm.nb(male.avg.size ~ treatment, data = new.map)
+
+emmeans(model2, pairwise ~ treatment, adjust = "tukey", type = "response")
+
+
+
+```
+
