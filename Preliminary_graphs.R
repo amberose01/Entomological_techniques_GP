@@ -1,4 +1,4 @@
-#Entomolgoical Techniques Group Project
+#Entomological Techniques Group Project
 #Testing the impact of fungal supplements to bumble bee offspring, size, and survival
 
 
